@@ -1,0 +1,324 @@
+﻿@model IEnumerable<TasksMVC.Models.Work>
+@using PagedList.Mvc;
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<form asp-controller="Work" asp-action="Index" method="get">
+    @*<p>
+        Name: <input type="text" name="searchString" />
+        <input type="submit" value="Filter" />
+    </p>*@
+    <table>
+        <thead>
+            <tr>
+                <th>Name: <input type="text" id="searchString" name="searchString" value="@ViewBag.SearchString" /></th>
+                <th> @Html.TextBox("searchDate", @ViewBag.SearchDate ,"{0:yyyy-MM-dd}",new{ @style="width:100%", type="date" })</th>
+                <th>
+                    @{
+                        List<SelectListItem> listItems = new List<SelectListItem>();
+                            listItems.Add(new SelectListItem
+                                {
+                                    Text = "All",
+                                    Selected= true
+                                });
+                            listItems.Add(new SelectListItem
+                                {
+                                    Text = "Need",
+                                    Value = "0",
+
+                                });
+                            listItems.Add(new SelectListItem
+                                {
+                                    Text = "Inprogress",
+                                    Value = "1",
+                                });
+                            listItems.Add(new SelectListItem
+                                {
+                                    Text = "Done",
+                                    Value = "2"
+                                });
+                    }
+
+                    @Html.DropDownList("Status", listItems, new { @class = "form-control" })
+                </th>
+                <th><input type="submit" value="Filter" /></th>
+                
+            </tr>
+        </thead>
+    </table>
+   
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            @{
+                var orderType = 1;
+                if ( (int)ViewBag.OrderType == 1)
+                {
+                    orderType = 2;
+                }
+                var getParam = (string typeSort) =>
+                {
+                    return new Dictionary<string, string>
+                        {
+                            { "page", ViewBag.Page.ToString() },
+                            { "orderType", orderType.ToString() },
+                            { "orderBy", typeSort},
+                            { "searchString", (ViewBag.SearchString != null)? ViewBag.SearchString: "" },
+                            { "perPage", (ViewBag.PerPage != null)? ViewBag.PerPage.ToString(): "10" },
+                            { "status", (ViewBag.Status != null)? ViewBag.Status.ToString(): "" },
+                            { "searchDate", (ViewBag.SearchDate != null)? ViewBag.SearchDate.ToString("yyyy-MM-dd"): "" },
+                        };
+                };
+
+            }
+            <th>
+                <a asp-action="Index" asp-all-route-data="@getParam("CreatedDate")">@Html.DisplayNameFor(model => model.CreatedDate)</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-all-route-data="@getParam("HandleDate")">@Html.DisplayNameFor(model => model.HandleDate)</a>
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CreatedDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.HandleDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div>
+    <p>Page @ViewBag.Page / @ViewBag.TotalPage of @ViewBag.TotalRecord works</p>
+</div>
+@{
+    var getPageInfo = (int page) =>
+            {
+
+                return @Url.Action("Index", new
+                {
+                    page = page,
+                    perPage = ViewBag.PerPage,
+                    searchString = ViewBag.SearchString,
+                    orderType = ViewBag.OrderType,
+                    orderBy = ViewBag.OrderBy,
+                    status = ViewBag.Status,
+                    searchDate = ViewBag.SearchDate,
+                });
+            };
+}
+@if (ViewBag.Page > 1)
+{
+    <a href="@getPageInfo(ViewBag.Page -1)"
+       class="btn btn-default">
+        &laquo; Prev
+    </a>
+}
+@if(ViewBag.TotalPage <= 5)
+{
+    for (int i = 1; i <= ViewBag.TotalPage; i++)
+    {
+
+        @if (ViewBag.Page == i)
+        {
+            <a href="@getPageInfo(i)"
+               class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+                @i
+            </a>
+        }
+        else
+        {
+            <a href="@getPageInfo(i)"
+               class="btn btn-default" >
+                @i
+            </a>
+        }
+
+    }
+}
+else
+{
+    //first page
+    @if (ViewBag.Page == 1)
+    {
+        <a href="@Url.Action("Index", new { page = 1, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            1
+        </a>
+        <a href="@Url.Action("Index", new { page = 2 , perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            2
+        </a>
+        <a>...</a>
+    }
+    else 
+    {
+        <a href="@Url.Action("Index", new { page = 1, perPage = ViewBag.PerPage })"
+           class="btn btn-default" >
+            1
+        </a>
+    }
+        // page == 2 >> print page,3 ...
+    @if (ViewBag.Page == 2)
+    {
+        
+        <a href="@Url.Action("Index", new { page = 2, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            2
+        </a>
+        <a href="@Url.Action("Index", new { page = 3, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            3
+        </a>
+        <a>...</a>
+       
+    }
+    else if (ViewBag.Page == 3)
+    {
+        <a href="@Url.Action("Index", new { page = 2, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            2
+        </a>
+        <a href="@Url.Action("Index", new { page = 3, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            3
+        </a>
+        <a href="@Url.Action("Index", new { page = 4, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            4
+        </a>
+        <a>...</a>
+    }
+   
+    
+    @if (ViewBag.Page > 3 && ViewBag.Page < (ViewBag.TotalPage - 2))
+    {
+        <a>...</a>
+        <a href="@Url.Action("Index", new { page = ViewBag.Page -1, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            @(@ViewBag.Page -1)
+        </a>
+        <a href="@Url.Action("Index", new { page = ViewBag.Page, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            @ViewBag.Page
+        </a>
+        <a href="@Url.Action("Index", new { page = ViewBag.Page +1, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            @(@ViewBag.Page + 1)
+        </a>
+        <a>...</a>
+
+    }
+    
+    // 2 < page < total -2 >> print ... page ... total
+    @if (ViewBag.Page > 3 && ViewBag.Page == (ViewBag.TotalPage -2))
+    {
+        <a>...</a>
+        <a href="@Url.Action("Index", new { page = @ViewBag.TotalPage -3, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+
+            @(@ViewBag.TotalPage - 3)
+
+        </a>
+        <a href="@Url.Action("Index", new { page = ViewBag.TotalPage -2, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            @(@ViewBag.TotalPage - 2)
+        </a>
+        <a href="@Url.Action("Index", new { page = @ViewBag.TotalPage -1, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+
+            @(@ViewBag.TotalPage - 1)
+
+        </a>
+    }
+    else if (ViewBag.Page > 3 && ViewBag.Page == (ViewBag.TotalPage - 1))
+    {
+        <a>...</a>
+        <a href="@Url.Action("Index", new { page = @ViewBag.TotalPage -2, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+
+            @(@ViewBag.TotalPage - 2)
+
+        </a>
+        <a href="@Url.Action("Index", new { page = @ViewBag.TotalPage -1, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            
+                @(@ViewBag.TotalPage - 1)
+            
+        </a>
+    }
+    
+    //last page
+    @if (ViewBag.Page == ViewBag.TotalPage)
+
+    {
+        <a>...</a>
+        <a href="@Url.Action("Index", new { page = @ViewBag.TotalPage - 1, perPage = ViewBag.PerPage })"
+           class="btn btn-default" >
+            @(@ViewBag.TotalPage - 1)
+        </a>
+        <a href="@Url.Action("Index", new { page = ViewBag.TotalPage, perPage = ViewBag.PerPage })"
+           class="btn btn-default" style="background-color: yellow; --darkreader-inline-bgcolor: #999900;">
+            @ViewBag.TotalPage
+        </a>
+    }
+    else
+    {
+        
+        <a href="@Url.Action("Index", new { page = ViewBag.TotalPage, perPage = ViewBag.PerPage })"
+           class="btn btn-default">
+            @ViewBag.TotalPage
+        </a>
+    }
+}
+@if (ViewBag.Page < ViewBag.TotalPage)
+{
+    <a href="@Url.Action("Index", new { page = ViewBag.Page + 1, perPage = ViewBag.PerPage })"
+       class="btn btn-default">
+        Next &raquo;
+    </a>
+}
